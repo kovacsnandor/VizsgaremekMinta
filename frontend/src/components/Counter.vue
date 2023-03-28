@@ -4,9 +4,16 @@
   </span>
 </template>
 
-<script setup>
+<script>
 import { useCounterStore } from "@/stores/counter";
-const storeCounter = useCounterStore();
+// const storeCounter = useCounterStore();
+// export default {
+//   data(){
+//     return {
+//       storeCounter,
+//     }
+//   }
+// }
 </script>
 
 <style>

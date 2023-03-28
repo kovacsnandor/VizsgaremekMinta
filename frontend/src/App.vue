@@ -11,8 +11,10 @@
 </template>
 
 <script>
-import Carousel from './components/Carousel.vue'
-import Menu from './components/Menu.vue'
+import Carousel from '@/components/Carousel.vue'
+import Menu from '@/components/Menu.vue'
+// import { useUrlStore } from "./stores/url";
+// const storeUrl = useUrlStore();
 
 export default {
   components: { Carousel, Menu},

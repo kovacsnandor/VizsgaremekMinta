@@ -18,6 +18,21 @@ const router = createRouter({
       component: () => import('../views/AboutView.vue')
     },
     {
+      path: '/taxiFuvarjai',
+      name: 'taxiFuvarjai',
+      component: () => import('../views/TaxiFuvarjaiView.vue')
+    },
+    {
+      path: '/taxiKezeles',
+      name: 'taxiKezeles',
+      component: () => import('../views/TaxiKezelesView.vue')
+    },
+    {
+      path: '/fuvarBevitel',
+      name: 'fuvarBevitel',
+      component: () => import('../views/FuvarBevitel.vue')
+    },
+    {
       path: '/count1',
       name: 'count1',
       component: () => import('../views/Count1View.vue')
@@ -31,6 +46,11 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: () => import('../views/LoginView.vue')
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'PageNotFound',
+      component: () => import('../views/404View.vue')
     }
   ]
 })

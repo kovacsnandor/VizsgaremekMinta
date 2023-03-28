@@ -1,5 +1,5 @@
 <template>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <nav class="navbar navbar-expand-md navbar-dark bg-dark">
     <div class="container-fluid">
       <router-link class="navbar-brand" to="/">Taxi</router-link>
       <button
@@ -16,7 +16,9 @@
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item">
-            <router-link class="nav-link active" aria-current="page" to="/">Home</router-link>
+            <router-link class="nav-link active" aria-current="page" to="/"
+              >Home</router-link
+            >
           </li>
           <li class="nav-item">
             <router-link class="nav-link" to="/about">About</router-link>
@@ -32,10 +34,22 @@
               Taxiállomás
             </a>
             <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="#">Taxi és fuvarjai</a></li>
-                <li><hr class="dropdown-divider" /></li>
-                <li><a class="dropdown-item" href="#">Taxik kezelése</a></li>
-                <li><a class="dropdown-item" href="#">Fuvar bevitel</a></li>
+              <li>
+                <router-link class="dropdown-item" to="/taxiFuvarjai"
+                  >Taxi és fuvarjai</router-link
+                >
+              </li>
+              <li><hr class="dropdown-divider" /></li>
+              <li>
+                <router-link class="dropdown-item" to="/taxiKezeles"
+                  >Taxik kezelése</router-link
+                >
+              </li>
+              <li>
+                <router-link class="dropdown-item" to="/fuvarBevitel"
+                  >Fuvar bevitel</router-link
+                >
+              </li>
             </ul>
           </li>
           <li class="nav-item dropdown">
@@ -49,12 +63,25 @@
               Counter
             </a>
             <ul class="dropdown-menu">
-              <li><router-link class="dropdown-item" to="/count1">Counter1</router-link></li>
-              <li><router-link class="dropdown-item" to="/count2">Counter2</router-link></li>
+              <li>
+                <router-link class="dropdown-item" to="/count1"
+                  >Counter1</router-link
+                >
+              </li>
+              <li>
+                <router-link class="dropdown-item" to="/count2"
+                  >Counter2</router-link
+                >
+              </li>
             </ul>
           </li>
-          <li class="nav-item">
+          <li class="nav-item" v-if="!storeLogin.loginSuccess">
             <router-link class="nav-link" to="/login">Login</router-link>
+          </li>
+          <li class="nav-item" v-if="storeLogin.loginSuccess" @click="logout()">
+            <router-link class="nav-link" to="/login"
+              >Logout ({{ storeLogin.userName }})</router-link
+            >
           </li>
         </ul>
         <form class="d-flex" role="search">
@@ -71,8 +98,39 @@
   </nav>
 </template>
 
-<script>
-export default {};
+<script setup>
+import { useUrlStore } from "@/stores/url";
+import { useLoginStore } from "@/stores/login";
+const storeUrl = useUrlStore();
+const storeLogin = useLoginStore();
+
+const msg = "helo";
+async function logout() {
+  console.log("logout");
+  const urlLogout = storeUrl.urlLogout;
+  const body = {
+    token: storeLogin.refreshToken,
+  };
+  const config = {
+    method: "DELETE",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  };
+  const response = await fetch(urlLogout, config);
+  storeLogin.clearLogin();
+}
+
+// export default {
+//   data() {
+//     return {
+//       storeUrl,
+//       storeLogin
+//     }
+//   }
+// };
 </script>
 
 <style>

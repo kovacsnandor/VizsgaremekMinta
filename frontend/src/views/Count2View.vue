@@ -5,7 +5,7 @@
     <button class="btn btn-outline-secondary"
     @click="storeCounter.increaseCount"
     >
-      <Counter/>
+      <span>{{storeCounter.count}}</span>
     </button>
   </div>
 </template>

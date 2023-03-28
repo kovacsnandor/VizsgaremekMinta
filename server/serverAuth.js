@@ -134,7 +134,7 @@ app.post("/token", (req, res) => {
 app.delete("/logout", (req, res) => {
   //eltüntetjük a refreshTokes-ből a küldött refreshToken-t
   refreshTokens = refreshTokens.filter((token) => token !== req.body.token);
-  sendingInfo(res, 1, "Logout ok!", [], 402)
+  sendingInfo(res, 1, "Logout ok!", [], 200)
   console.log("refreshTokens /logout:", refreshTokens);
 });
 
@@ -142,7 +142,7 @@ app.delete("/logout", (req, res) => {
 app.delete("/logoutall", (req, res) => {
   //eltüntetjük a refreshTokes-ből a küldött refreshToken-t
   refreshTokens = [];
-  sendingInfo(res, 1, "Logout ok!", [], 402)
+  sendingInfo(res, 1, "Logout ok!", [], 200)
   console.log("refreshTokens /logoutall:", refreshTokens);
 });
 
