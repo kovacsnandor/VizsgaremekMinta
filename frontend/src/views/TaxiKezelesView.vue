@@ -20,6 +20,8 @@
           <th>Autó márka</th>
           <th>Rendszám</th>
           <th>Tarifa (Ft/óra)</th>
+          <th>Vezető</th>
+          <th>Forgalmon kívül</th>
         </tr>
       </thead>
       <tbody>
@@ -29,7 +31,7 @@
           :class="currentRowBackground(car.id)"
           @click="onClikRow(car.id)"
         >
-          <td>
+          <td class="text-nowrap">
             <!-- törlés -->
             <button
               type="button"
@@ -51,6 +53,16 @@
           <td>{{ car.name }}</td>
           <td>{{ car.licenceNumber }}</td>
           <td>{{ car.hourlyRate }}</td>
+          <td>{{ car.driverName }}</td>
+          <td>
+            <input
+              class="form-check-input"
+              disabled
+              type="checkbox"
+              :id="`cb${index}`"
+              v-model="car.outOfTraffic"
+            />
+          </td>
         </tr>
       </tbody>
     </table>
@@ -125,6 +137,31 @@
                 />
                 <div class="invalid-feedback">A tarifa kitöltése kötelező</div>
               </div>
+
+              <!-- out of traffic -->
+              <div class="col-md-6">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  value=""
+                  id="outOfTraffic"
+                  v-model="editableCar.outOfTraffic"
+                />
+                <label class="form-check-label ms-2" for="flexCheckDefault">
+                  Forgalmon kívül
+                </label>
+              </div>
+
+              <div class="col-md-6">
+                <select class="form-select" aria-label="Default select example"
+                  v-model="editableCar.driverId"
+                >
+                <option v-for="(driver, index) in driversAbc" :key="`op${index}`"
+                  :value="driver.id">
+                  {{ driver.driverName }}
+                </option>
+                </select>
+              </div>
             </form>
             <!--#endregion Form -->
           </div>
@@ -142,6 +179,7 @@
             <button
               type="button"
               class="btn btn-primary"
+              data-bs-dismiss="modal"
               @click="onClickSave()"
             >
               Save changes
@@ -162,11 +200,20 @@ const storeUrl = useUrlStore();
 const storeLogin = useLoginStore();
 
 class Car {
-  constructor(id = 0, name = null, licenceNumber = null, hourlyRate = null) {
+  constructor(
+    id = 0,
+    name = null,
+    licenceNumber = null,
+    hourlyRate = null,
+    outOfTraffic = false,
+    driverId = null
+  ) {
     this.id = id;
     this.name = name;
     this.licenceNumber = licenceNumber;
     this.hourlyRate = hourlyRate;
+    this.outOfTraffic = outOfTraffic;
+    this.driverId = driverId;
   }
 }
 
@@ -181,10 +228,12 @@ export default {
       form: null,
       state: "view",
       currentId: null,
+      driversAbc: [],
     };
   },
   mounted() {
     this.getCars();
+    this.getDriversAbc();
     this.modal = new bootstrap.Modal(document.getElementById("modalCar"), {
       keyboard: false,
     });
@@ -193,7 +242,7 @@ export default {
   },
   methods: {
     async getCars() {
-      let url = this.storeUrl.urlCars;
+      let url = this.storeUrl.urlCarsWithDrivers;
       const config = {
         method: "GET",
         headers: {
@@ -202,8 +251,10 @@ export default {
       };
       const response = await fetch(url, config);
       const data = await response.json();
-      this.cars = data.data;
-      this.state = "view";
+      this.cars = data.data.map((car) => {
+        car.outOfTraffic = car.outOfTraffic === 1;
+        return car;
+      });
     },
     async getCarById(id) {
       let url = `${this.storeUrl.urlCars}/${id}`;
@@ -216,14 +267,44 @@ export default {
       const response = await fetch(url, config);
       const data = await response.json();
       this.editableCar = data.data;
-      this.state = "view";
+      this.editableCar.outOfTraffic = this.editableCar.outOfTraffic === 1;
+    },
+
+    async getDriversAbc() {
+      let url = this.storeUrl.urlDriversAbc;
+      const config = {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${this.storeLogin.accessToken}`,
+        },
+      };
+      const response = await fetch(url, config);
+      const data = await response.json();
+      this.driversAbc = data.data;
     },
 
     async postCar() {
       let url = this.storeUrl.urlCars;
+      this.editableCar.outOfTraffic = this.editableCar.outOfTraffic ? 1 : 0;
       const body = JSON.stringify(this.editableCar);
       const config = {
         method: "POST",
+        headers: {
+          "content-type": "application/json",
+          Authorization: `Bearer ${this.storeLogin.accessToken}`,
+        },
+        body: body,
+      };
+      const response = await fetch(url, config);
+      this.getCars();
+    },
+    async putCar() {
+      const id = this.editableCar.id;
+      let url = `${this.storeUrl.urlCars}/${id}`;
+      this.editableCar.outOfTraffic = this.editableCar.outOfTraffic ? 1 : 0;
+      const body = JSON.stringify(this.editableCar);
+      const config = {
+        method: "PUT",
         headers: {
           "content-type": "application/json",
           Authorization: `Bearer ${this.storeLogin.accessToken}`,
@@ -246,7 +327,6 @@ export default {
       this.getCars();
     },
     onClikRow(id) {
-      console.log("click row");
       this.currentId = id;
     },
     onClickNew() {
@@ -274,15 +354,19 @@ export default {
       if (this.form.checkValidity()) {
         if (this.state == "edit") {
           //put
+          this.putCar();
         } else if (this.state == "new") {
           //post
-          this.modal.hide();
           this.postCar();
         }
+        this.modal.hide();
       }
     },
     currentRowBackground(id) {
       return this.currentId == id ? "my-bg-current-row" : "";
+    },
+    outOfTrafficName(outOfTraffic) {
+      return outOfTraffic ? "igen" : "nem";
     },
   },
   computed: {

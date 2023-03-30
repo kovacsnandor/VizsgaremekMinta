@@ -49,6 +49,7 @@ ALTER TABLE cars.trips
 # Kézi teszt adatokkal
 DELETE FROM trips;
 DELETE FROM cars;
+DELETE FROM drivers;
 DELETE FROM users;
 
 INSERT cars 
@@ -68,10 +69,19 @@ INSERT users
   VALUES
   (1,'jozsi@gmail.com','jozsijelszo'),(2,'bela@gmail.com','belajelszo'),(3,'feri@gmail.com','ferijelszo');
 
+
+INSERT drivers
+  (id, driverName)
+  VALUES
+  (1, 'Béla'),(2, 'Feri'),(3, 'Áron'),(4, 'Géza'),(5, 'Benõ'),
+  (6, 'Józsi'),(7, 'Miklós'),(8, 'Ernõ'),(9, 'Zsolt'),(10, 'Hugó'),
+  (11, 'Tibor'),(12, 'Jenõ'),(13, 'Attila'),(14, 'Gyuri'),(15, 'János');
+
 # Lekérdezések
 SELECT * FROM cars;
 SELECT * FROM trips;
 SELECT * FROM users;
+select * from drivers;
 
 # Tárolt eljárással
 CALL tesztAdatokKezi();
@@ -81,7 +91,7 @@ select randomInteger(1,3);
 select randomRendszam('Mercedesz');
 select randomAuto();
 
-CALL tesztAdatokAutomata(10, '2022.10.13 12:00:00', 2, 5);
+CALL tesztAdatgeneratorDinamikus(10, '2022.10.13 12:00:00', 2, 5);
 
 
 # -------------------------------------
@@ -161,3 +171,7 @@ select count(*) countUserEmail from users where userName = 'h'
 UNION all
   select count(*) countEmail from users where email = 'feher.h@gmail.com'
 ;
+
+
+SELECT id, driverName FROM drivers
+  ORDER BY driverName;
