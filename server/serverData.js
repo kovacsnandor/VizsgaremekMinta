@@ -479,8 +479,6 @@ app.put("/cars/:id", (req, res) => {
     outOfTraffic: +sanitizeHtml(req.body.outOfTraffic),
     driverId: +sanitizeHtml(req.body.driverId)
   };
-
-  console.log("n:", newR, id);
   let sql = `
     UPDATE cars SET
     name = ?,
