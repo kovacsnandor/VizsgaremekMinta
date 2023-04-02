@@ -156,6 +156,7 @@
                 <select class="form-select" aria-label="Default select example"
                   v-model="editableCar.driverId"
                 >
+                <option :value="null">Nincs sofőr</option>
                 <option v-for="(driver, index) in driversAbc" :key="`op${index}`"
                   :value="driver.id">
                   {{ driver.driverName }}
@@ -171,7 +172,6 @@
             <button
               type="button"
               class="btn btn-secondary"
-              data-bs-dismiss="modal"
               @click="onClickCancel()"
             >
               Close
@@ -179,7 +179,7 @@
             <button
               type="button"
               class="btn btn-primary"
-              data-bs-dismiss="modal"
+              
               @click="onClickSave()"
             >
               Save changes
@@ -233,7 +233,7 @@ export default {
   },
   mounted() {
     this.getCars();
-    this.getDriversAbc();
+    this.getFreeDriversAbc();
     this.modal = new bootstrap.Modal(document.getElementById("modalCar"), {
       keyboard: false,
     });
@@ -251,10 +251,11 @@ export default {
       };
       const response = await fetch(url, config);
       const data = await response.json();
-      this.cars = data.data.map((car) => {
-        car.outOfTraffic = car.outOfTraffic === 1;
-        return car;
-      });
+      this.cars = data.data;
+      // this.cars = data.data.map((car) => {
+      //   car.outOfTraffic = car.outOfTraffic === 1;
+      //   return car;
+      // });
     },
     async getCarById(id) {
       let url = `${this.storeUrl.urlCars}/${id}`;
@@ -267,11 +268,10 @@ export default {
       const response = await fetch(url, config);
       const data = await response.json();
       this.editableCar = data.data;
-      this.editableCar.outOfTraffic = this.editableCar.outOfTraffic === 1;
     },
 
-    async getDriversAbc() {
-      let url = this.storeUrl.urlDriversAbc;
+    async getFreeDriversAbc() {
+      let url = this.storeUrl.urlFreeDriversAbc;
       const config = {
         method: "GET",
         headers: {
@@ -285,7 +285,6 @@ export default {
 
     async postCar() {
       let url = this.storeUrl.urlCars;
-      this.editableCar.outOfTraffic = this.editableCar.outOfTraffic ? 1 : 0;
       const body = JSON.stringify(this.editableCar);
       const config = {
         method: "POST",
@@ -301,7 +300,6 @@ export default {
     async putCar() {
       const id = this.editableCar.id;
       let url = `${this.storeUrl.urlCars}/${id}`;
-      this.editableCar.outOfTraffic = this.editableCar.outOfTraffic ? 1 : 0;
       const body = JSON.stringify(this.editableCar);
       const config = {
         method: "PUT",
@@ -343,6 +341,7 @@ export default {
     onClickEdit(id) {
       this.state = "edit";
       this.getCarById(id);
+      this.getFreeDriversAbc();
       this.modal.show();
     },
     onClickCancel() {
@@ -355,11 +354,15 @@ export default {
         if (this.state == "edit") {
           //put
           this.putCar();
+          // this.modal.hide();
         } else if (this.state == "new") {
           //post
           this.postCar();
+          // this.modal.hide();
         }
         this.modal.hide();
+        //frissíti a taxisok listáját
+        this.getFreeDriversAbc()
       }
     },
     currentRowBackground(id) {

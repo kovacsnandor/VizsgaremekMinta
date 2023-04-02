@@ -241,7 +241,9 @@ function getTrips(res, carId) {
 
 //Csak a cars tábla
 app.get("/cars", (req, res) => {
-  let sql = `SELECT * FROM cars`;
+  let sql = `SELECT id, name, licenceNumber, hourlyRate, 
+      if(outOfTraffic, 'true', 'false') outOfTraffic, 
+      driverId FROM cars`;
 
   pool.getConnection(function (error, connection) {
     if (error) {
@@ -262,7 +264,9 @@ app.get("/cars", (req, res) => {
 
 //Cars a Trip-jeivel
 app.get("/carsWithTrips", (req, res) => {
-  let sql = `SELECT * FROM cars`;
+  let sql = `SELECT id, name, licenceNumber, hourlyRate, 
+    if(outOfTraffic, 'true', 'false') outOfTraffic, 
+    driverId FROM cars`;
 
   pool.getConnection(function (error, connection) {
     if (error) {
@@ -289,7 +293,9 @@ app.get("/carsWithTrips", (req, res) => {
 
 //Cars és Trips táblák inner join
 app.get("/carsTrips", (req, res) => {
-  let sql = `select * from cars c
+  let sql = `select id, name, licenceNumber, hourlyRate, 
+  if(outOfTraffic, 'true', 'false') outOfTraffic, 
+  driverId from cars c
   inner join trips t on c.id = t.carId`;
 
   pool.getConnection(function (error, connection) {
@@ -313,7 +319,9 @@ app.get("/carsTrips", (req, res) => {
 app.get("/cars/:id", (req, res) => {
   const id = req.params.id;
   let sql = `
-    SELECT * FROM cars
+    SELECT id, name, licenceNumber, hourlyRate, 
+    if(outOfTraffic, 'true', 'false') outOfTraffic, 
+    driverId FROM cars
     WHERE id = ?`;
 
   pool.getConnection(function (error, connection) {
@@ -342,7 +350,9 @@ app.get("/cars/:id", (req, res) => {
 app.get("/carsWithTrips/:id", (req, res) => {
   const id = req.params.id;
   let sql = `
-    SELECT * FROM cars
+    SELECT id, name, licenceNumber, hourlyRate, 
+    if(outOfTraffic, 'true', 'false') outOfTraffic, 
+    driverId FROM cars
     WHERE id = ?`;
 
   pool.getConnection(function (error, connection) {
@@ -399,8 +409,11 @@ app.get("/carsTrips/:id", (req, res) => {
 });
 
 app.get("/carsWithDrivers", (req, res) => {
-  let sql = `select c.id, c.name, c.licenceNumber, c.hourlyRate, c.outOfTraffic, c.driverId, d.driverName from cars c
-        inner join drivers d on d.id = c.driverId`;
+  let sql = `select c.id, c.name, c.licenceNumber, c.hourlyRate, 
+        if(c.outOfTraffic, 'true','false') outOfTraffic,
+        c.driverId, d.driverName 
+        from cars c
+        left join drivers d on d.id = c.driverId`;
 
   pool.getConnection(function (error, connection) {
     if (error) {
@@ -444,9 +457,9 @@ app.post("/cars", (req, res) => {
   const newR = {
     name: sanitizeHtml(req.body.name),
     licenceNumber: sanitizeHtml(req.body.licenceNumber),
-    hourlyRate: +sanitizeHtml(req.body.hourlyRate),
-    outOfTraffic: +sanitizeHtml(req.body.outOfTraffic),
-    driverId: +sanitizeHtml(req.body.driverId),
+    hourlyRate: req.body.hourlyRate,
+    outOfTraffic: req.body.outOfTraffic,
+    driverId: req.body.driverId,
   };
   let sql = `
     INSERT cars 
@@ -475,9 +488,9 @@ app.put("/cars/:id", (req, res) => {
   const newR = {
     name: sanitizeHtml(req.body.name),
     licenceNumber: sanitizeHtml(req.body.licenceNumber),
-    hourlyRate: +sanitizeHtml(req.body.hourlyRate),
-    outOfTraffic: +sanitizeHtml(req.body.outOfTraffic),
-    driverId: +sanitizeHtml(req.body.driverId)
+    hourlyRate: req.body.hourlyRate,
+    outOfTraffic: req.body.outOfTraffic,
+    driverId: req.body.driverId
   };
   let sql = `
     UPDATE cars SET
@@ -510,6 +523,29 @@ app.put("/cars/:id", (req, res) => {
 app.get("/driversAbc", (req, res) => {
   let sql = `SELECT id, driverName FROM drivers
       ORDER BY driverName`;
+
+  pool.getConnection(function (error, connection) {
+    if (error) {
+      sendingGetError(res, "Server connecting error!");
+      return;
+    }
+    connection.query(sql, async function (error, results, fields) {
+      if (error) {
+        message = "Cars sql error";
+        sendingGetError(res, message);
+        return;
+      }
+      sendingGet(res, null, results);
+    });
+    connection.release();
+  });
+});
+
+app.get("/freeDriversAbc", (req, res) => {
+  let sql = `SELECT d.id, d.driverName from drivers d
+      LEFT JOIN cars c on d.id = c.driverId
+      WHERE c.driverId is NULL
+    ORDER BY d.driverName`;
 
   pool.getConnection(function (error, connection) {
     if (error) {

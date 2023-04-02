@@ -121,8 +121,16 @@ SELECT * FROM cars
 # ----------------------------
 # Lekérdezések
 
+# get cars
+SELECT id, name, licenceNumber, hourlyRate, 
+  if(outOfTraffic, 'true', 'false') 
+  outOfTraffic, driverId FROM cars; 
+
+
 # get http://localhost:3000/cars/1
-SELECT * FROM cars
+SELECT id, name, licenceNumber, hourlyRate, 
+  if(outOfTraffic, 'true', 'false') 
+  outOfTraffic, driverId FROM cars
   WHERE id = 1;
 
 
@@ -133,9 +141,18 @@ DELETE FROM cars
 
 # car hozzáadás
 INSERT cars 
-  (name, licenceNumber, hourlyRate)
+  (name, licenceNumber, hourlyRate,outOfTraffic, driverId)
   VALUES
-  ('BMW', 'BB-111', 2200);
+  ('BMW', 'BB-111', 2200, 0, 2);
+
+UPDATE cars SET
+    name = 'zzz',
+    licenceNumber = 'xxx',
+    hourlyRate = 3000,
+    outOfTraffic = false,
+    driverId = 11
+    WHERE id = 609;
+
 
 # car módosítás
 UPDATE cars SET
@@ -172,6 +189,18 @@ UNION all
   select count(*) countEmail from users where email = 'feher.h@gmail.com'
 ;
 
-
+# driversAbc
 SELECT id, driverName FROM drivers
   ORDER BY driverName;
+
+# freeDriversAbc Azok a sofõrök, akik még nem kaptak autót
+SELECT d.id, d.driverName from drivers d
+  LEFT JOIN cars c on d.id = c.driverId
+  WHERE c.driverId is NULL
+ORDER BY d.driverName;
+
+# carsWithDrivers
+select c.id, c.name, c.licenceNumber, c.hourlyRate, 
+  if(c.outOfTraffic, 'true','false') outOfTraffic,
+  c.driverId, d.driverName from cars c
+  left join drivers d on d.id = c.driverId;
