@@ -432,7 +432,31 @@ app.get("/carsWithDrivers", (req, res) => {
   });
 });
 
+app.get("/carsWithDriversReal", (req, res) => {
+  let sql = `select c.id, c.name, c.licenceNumber, c.hourlyRate, 
+        if(c.outOfTraffic, 'true','false') outOfTraffic,
+        c.driverId, d.driverName 
+        from cars c
+        inner join drivers d on d.id = c.driverId
+        where c.outOfTraffic = 0
+        `;
 
+  pool.getConnection(function (error, connection) {
+    if (error) {
+      sendingGetError(res, "Server connecting error!");
+      return;
+    }
+    connection.query(sql, async function (error, results, fields) {
+      if (error) {
+        message = "Cars sql error";
+        sendingGetError(res, message);
+        return;
+      }
+      sendingGet(res, null, results);
+    });
+    connection.release();
+  });
+});
 
 app.delete("/cars/:id", (req, res) => {
   const id = req.params.id;
@@ -573,7 +597,9 @@ app.get("/tripsByCarId/:id", (req, res) => {
   const id = req.params.id;
   let sql = `
     SELECT id, numberOfMinits, DATE_FORMAT(date, '%Y.%m.%d %h:%i:%s') date, carId from trips
-    WHERE carId = ?`;
+    WHERE carId = ?
+    ORDER BY date DESC
+    `;
 
   pool.getConnection(function (error, connection) {
     if (error) {

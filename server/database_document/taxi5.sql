@@ -161,13 +161,18 @@ UPDATE cars SET
   hourlyRate = 2200
   WHERE id = 4;
 
+#tripsByCarId/:id
 # adott kocsi trips-jei
 SELECT id, numberOfMinits, DATE_FORMAT(date, '%Y.%m.%d %h:%i:%s') date from trips
-  WHERE carId = 1;
+  WHERE carId = 1
+  ORDER BY date DESC
+;
 
 # trips by id
+
 SELECT id, numberOfMinits, DATE_FORMAT(date, '%Y.%m.%d %h:%i:%s') date from trips
-  WHERE id = 9;
+  WHERE id = 1
+;
 
 # trips by id
 SELECT id, numberOfMinits, DATE_FORMAT(date, '%Y.%m.%d %h:%i:%s') date from trips;
@@ -189,18 +194,36 @@ UNION all
   select count(*) countEmail from users where email = 'feher.h@gmail.com'
 ;
 
+
 # driversAbc
+# Sofõrök ABC-ben
 SELECT id, driverName FROM drivers
   ORDER BY driverName;
 
-# freeDriversAbc Azok a sofõrök, akik még nem kaptak autót
+# freeDriversAbc
+# Azok a sofõrök, akik még nem kaptak autót Abc-ben
 SELECT d.id, d.driverName from drivers d
   LEFT JOIN cars c on d.id = c.driverId
   WHERE c.driverId is NULL
 ORDER BY d.driverName;
 
 # carsWithDrivers
+# Autók vezetõikkel ha nincs, akkor is
 select c.id, c.name, c.licenceNumber, c.hourlyRate, 
   if(c.outOfTraffic, 'true','false') outOfTraffic,
   c.driverId, d.driverName from cars c
   left join drivers d on d.id = c.driverId;
+
+# carsWithDriversReal
+# Autók vezetõikkel (ahol tényleg van vezetõ és forgalomban van)
+select c.id, c.name, c.licenceNumber, c.hourlyRate, 
+  if(c.outOfTraffic, 'true','false') outOfTraffic,
+  c.driverId, d.driverName from cars c
+  inner join drivers d on d.id = c.driverId
+where c.outOfTraffic = 1;
+
+
+# tripsByCarId/2
+# Az autó fuvarjai
+SELECT id, numberOfMinits, DATE_FORMAT(date, '%Y.%m.%d %h:%i:%s') date, carId from trips
+    WHERE carId = 1;

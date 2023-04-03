@@ -28,11 +28,17 @@ export const useUrlStore = defineStore({
     urlCarsWithDrivers(){
       return `${this.urlData}/carsWithDrivers`
     },
+    urlCarsWithDriversReal(){
+      return `${this.urlData}/carsWithDriversReal`
+    },
     urlDriversAbc(){
       return `${this.urlData}/driversAbc`
     },
     urlFreeDriversAbc(){
       return `${this.urlData}/freeDriversAbc`
+    },
+    urlTripsByCarId(){
+      return `${this.urlData}/tripsByCarId`
     }
   },
 });

@@ -165,8 +165,8 @@ Content-Type: application/json
 
 {
     "numberOfMinits": 56,
-    "date": "2022.10.13 01:36:00",
-    "carId": 3
+    "date": "2023-04-03T06:27",
+    "carId": 2
 }
 
 
