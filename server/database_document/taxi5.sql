@@ -220,7 +220,7 @@ select c.id, c.name, c.licenceNumber, c.hourlyRate,
   if(c.outOfTraffic, 'true','false') outOfTraffic,
   c.driverId, d.driverName from cars c
   inner join drivers d on d.id = c.driverId
-where c.outOfTraffic = 1;
+where c.outOfTraffic = 0;
 
 
 # tripsByCarId/2

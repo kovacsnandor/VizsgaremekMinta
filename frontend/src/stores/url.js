@@ -39,6 +39,9 @@ export const useUrlStore = defineStore({
     },
     urlTripsByCarId(){
       return `${this.urlData}/tripsByCarId`
+    },
+    urlTrips(){
+      return `${this.urlData}/trips`
     }
   },
 });

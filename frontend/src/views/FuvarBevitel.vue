@@ -2,7 +2,7 @@
 <template>
   <div>
     <h1>Fuvar bevitel</h1>
-    <hr>
+    <hr />
     <div class="row p-3">
       <!-- taxi táblázat -->
       <div class="col-md-5">
@@ -35,47 +35,103 @@
       <!-- taxi fuvarjai -->
       <div class="col-md-7">
         <h2>Taxi fuvarkezelése</h2>
-        <hr>
-        
-        <h3>Új fuvar</h3>
-        <form class="row g-3 needs-validation" novalidate>
-              <!-- A fuvar dátumideje -->
-              <div class="col-md-6 d-flex align-items-center">
-                <label for="date" class="form-label">Mikor</label>
-                <input
-                  type="datetime-local"
-                  class="form-control ms-2"
-                  id="date"
-                  required
-                  v-model="newTrip.date"
-                />
-                <div class="invalid-feedback">A dátum kitöltése kötelező</div>
-              </div>
-              <!-- Menetidő (perc) -->
-              <div class="col-md-6 d-flex  align-items-center">
-                <label for="numberOfMinits" class="form-label">Menetidő:</label>
-                <input
-                  type="number"
-                  class="form-control ms-2"
-                  id="numberOfMinits"
-                  required
-                  v-model="newTrip.numberOfMinits"
-                />
-                <div class="invalid-feedback">A menetidő kitöltése kötelező</div>
-                <button type="button" class="btn btn-outline-success ms-2">
-                  <i class="bi bi-save2"></i>
-                </button>
-              </div>
-
-        </form>
         <hr />
+        <div v-if="currentCarId">
+          <h3>Új fuvar</h3>
+          <form class="row g-3 needs-validation" novalidate>
+            <!-- A fuvar dátumideje -->
+            <div class="col-md-6 d-flex align-items-center">
+              <label for="date" class="form-label">Mikor</label>
+              <input
+                type="datetime-local"
+                class="form-control ms-2"
+                id="date"
+                required
+                v-model="newTrip.date"
+                ref="date"
+              />
+              <div class="invalid-feedback">A dátum kitöltése kötelező</div>
+            </div>
+            <!-- Menetidő (perc) -->
+            <div class="col-md-6 d-flex align-items-center">
+              <label for="numberOfMinits" class="form-label">Menetidő:</label>
+              <input
+                type="number"
+                class="form-control ms-2"
+                id="numberOfMinits"
+                required
+                v-model="newTrip.numberOfMinits"
+                ref="numberOfMinits"
+              />
+              <div class="invalid-feedback">A menetidő kitöltése kötelező</div>
+              <button
+                type="button"
+                class="btn btn-outline-success ms-2"
+                @click="onClickSave()"
+                ref="save"
+                @keyup.enter="onClickSave()"
+              >
+                <i class="bi bi-save2"></i>
+              </button>
+            </div>
+          </form>
+          <hr />
 
-        <h3>Eddigi fuvarok</h3>
-        <ul>
-          <li v-for="(trip, index) in tripsByCarId" :key="`trip${index}`">
-            {{ trip.date }}: {{ trip.numberOfMinits }} perc
-          </li>
-        </ul>
+          <h3>Eddigi fuvarok</h3>
+          <ul>
+            <li v-for="(trip, index) in tripsByCarId" :key="`trip${index}`">
+              {{ trip.date }}: {{ trip.numberOfMinits }} perc
+              <span
+                class="ms-2 my-delete-hover"
+                @click="onClickDeleteTrip(trip.id)"
+                data-bs-toggle="modal"
+                data-bs-target="#exampleModal"
+                ><i class="bi bi-trash3-fill"></i
+              ></span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- delete modal -->
+    <div
+      class="modal fade"
+      id="exampleModal"
+      tabindex="-1"
+      aria-labelledby="exampleModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Fuvar törlés!</h1>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">Valóban törli a fuvart?</div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Nem
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              data-bs-dismiss="modal"
+              @click="onClickDeleteOK()"
+            >
+              Igen
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -88,8 +144,8 @@ import { useLoginStore } from "@/stores/login";
 const storeUrl = useUrlStore();
 const storeLogin = useLoginStore();
 
-class Trip{
-  constructor(numberOfMinits = null, date = null, carId = null){
+class Trip {
+  constructor(numberOfMinits = null, date = null, carId = null) {
     this.numberOfMinits = numberOfMinits;
     this.date = date;
     this.carId = carId;
@@ -103,6 +159,7 @@ export default {
       storeLogin,
       cars: [],
       currentCarId: null,
+      currentTripId: null,
       tripsByCarId: [],
       newTrip: new Trip(),
     };
@@ -135,6 +192,37 @@ export default {
       const response = await fetch(url, config);
       const data = await response.json();
       this.tripsByCarId = data.data;
+      this.newTrip = new Trip();
+    },
+    async postTrip() {
+      let url = this.storeUrl.urlTrips;
+      this.newTrip.carId = this.currentCarId;
+      const body = JSON.stringify(this.newTrip);
+      const config = {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          Authorization: `Bearer ${this.storeLogin.accessToken}`,
+        },
+        body: body,
+      };
+      const response = await fetch(url, config);
+      this.getTripsByCarId();
+    },
+    async deleteTrip(id) {
+      let url = `${this.storeUrl.urlTrips}/${id}`;
+      this.newTrip.carId = this.currentCarId;
+      const body = JSON.stringify(this.newTrip);
+      const config = {
+        method: "DELETE",
+        headers: {
+          "content-type": "application/json",
+          Authorization: `Bearer ${this.storeLogin.accessToken}`,
+        },
+        body: body,
+      };
+      const response = await fetch(url, config);
+      this.getTripsByCarId();
     },
     currentRowBackground(id) {
       return this.currentCarId == id ? "my-bg-current-row" : "";
@@ -142,6 +230,17 @@ export default {
     onClikRow(id) {
       this.currentCarId = id;
       this.getTripsByCarId();
+      // this.$refs.date.focus();
+      // this.$refs.date.showPicker();
+    },
+    onClickSave() {
+      this.postTrip();
+    },
+    onClickDeleteTrip(id) {
+      this.currentTripId = id;
+    },
+    onClickDeleteOK() {
+      this.deleteTrip(this.currentTripId);
     },
   },
 };
@@ -153,6 +252,9 @@ export default {
   background-color: lightgrey;
 }
 tr:hover {
-  cursor: pointer
+  cursor: pointer;
+}
+.my-delete-hover:hover {
+  color: red;
 }
 </style>
