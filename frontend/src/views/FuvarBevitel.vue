@@ -84,8 +84,6 @@
               <span
                 class="ms-2 my-delete-hover"
                 @click="onClickDeleteTrip(trip.id)"
-                data-bs-toggle="modal"
-                data-bs-target="#exampleModal"
                 ><i class="bi bi-trash3-fill"></i
               ></span>
             </li>
@@ -94,46 +92,16 @@
       </div>
     </div>
 
-    <!-- delete modal -->
-    <div
-      class="modal fade"
-      id="exampleModal"
-      tabindex="-1"
-      aria-labelledby="exampleModalLabel"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h1 class="modal-title fs-5" id="exampleModalLabel">Fuvar törlés!</h1>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div class="modal-body">Valóban törli a fuvart?</div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
-              Nem
-            </button>
-            <button
-              type="button"
-              class="btn btn-danger"
-              data-bs-dismiss="modal"
-              @click="onClickDeleteOK()"
-            >
-              Igen
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- delete modal component -->
+    <Menu></Menu>
+    <YesNo
+      v-if="yesNoShow"
+      yesNoTitle="Fuvar törlés"
+      yesNoMessage="Valóban törölni akarja a fuvart?"
+      @yes="onClickDeleteOK()"
+      @no="onClickDeleteCancel()"
+    ></YesNo>
+    
   </div>
 </template>
 
@@ -141,6 +109,8 @@
 import * as bootstrap from "bootstrap";
 import { useUrlStore } from "@/stores/url";
 import { useLoginStore } from "@/stores/login";
+import YesNo from "../components/YesNo.vue";
+import Menu from "../components/Menu.vue";
 const storeUrl = useUrlStore();
 const storeLogin = useLoginStore();
 
@@ -162,12 +132,12 @@ export default {
       currentTripId: null,
       tripsByCarId: [],
       newTrip: new Trip(),
+      yesNoShow: false,
     };
   },
   mounted() {
     this.getCarsWithDriversReal();
   },
-
   methods: {
     async getCarsWithDriversReal() {
       let url = this.storeUrl.urlCarsWithDriversReal;
@@ -237,12 +207,18 @@ export default {
       this.postTrip();
     },
     onClickDeleteTrip(id) {
+      this.yesNoShow = true;
       this.currentTripId = id;
     },
     onClickDeleteOK() {
       this.deleteTrip(this.currentTripId);
+      this.yesNoShow = false;
+    },
+    onClickDeleteCancel() {
+      this.yesNoShow = false;
     },
   },
+  components: { YesNo, Menu },
 };
 </script>
 
